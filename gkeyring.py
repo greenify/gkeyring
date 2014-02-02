@@ -9,6 +9,8 @@
 # This program is a free software, licensed under GNU AGPL 3:
 # http://www.gnu.org/licenses/agpl-3.0.html
 
+# doku: http://blogs.codecommunity.org/mindbending/bending-gnome-keyring-with-python-part-2/
+
 import sys, optparse, getpass
 import gnomekeyring as gk
 
@@ -78,10 +80,11 @@ When a new keyring item is created, its ID is printed out on the output.'''
 
         out_group = optparse.OptionGroup(parser, 'Formatting output for '
             'querying keyring items')
-        out_group.add_option('-o', '--output', default='id,secret',
+        out_group.add_option('-o', '--output', default='id,name,secret',
             help='comma-separated list of columns to be printed on the output.'
             " Column name may include any name of item's property or keywords "
-            "'id', 'secret' and 'name'. Columns will be separated by tabs. "
+            "'id', 'secret' and 'name'. You can also add attrs like 'server' which will be displayed when available. "
+            "Columns will be separated by tabs. "
             "[default: %default]")
         out_group.add_option('-O', '--output-attribute-names', action='store_true',
             help='show attribute names in addition to values')
@@ -249,18 +252,21 @@ Unlock the default keyring and provide the password 'qux' on the command-line.
                           'name': info.get_display_name(), 'attr': attr}
                 results.append(result)
             else:
-                matches = gk.find_items_sync(self.item_type, self.params)
-                for match in matches:
-                    result = {'id': match.item_id, 'secret': match.secret,
-                              'attr': match.attributes}
-                    if self.name or 'name' in self.output:
-                        # do this only when required, because it pops up
-                        # one more 'allow access?' dialog
-                        info = gk.item_get_info_sync(self.keyring,
-                                                     match.item_id)
-                        result['name'] = info.get_display_name()
+                item_keys =  gk.list_item_ids_sync(self.keyring)
+
+                for key in item_keys:
+                    item_info = gk.item_get_info_sync(self.keyring, key)
+                    #print "* Item number",key
+                    #print "\tName:", item_info.get_display_name()
+                    #print "\tPassword:", item_info.get_secret()
+
                     # filter by name if desired
-                    if not self.name or self.name == result['name']:
+                    if not self.name or self.name in item_info.get_display_name():
+                        result = {};
+                        result['id'] = key
+                        result['name'] =  item_info.get_display_name()
+                        result['secret'] =  item_info.get_secret()
+                        result['attr'] = gk.item_get_attributes_sync(self.keyring, key)
                         results.append(result)
         except gk.Error:
             pass
