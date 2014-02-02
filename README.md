@@ -4,6 +4,19 @@ gkeyring
 
 A small Python tool for shell access to GNOME keyring. It provides simple querying for and creating of keyring items.
 
+Packages
+=======
+
+
+========= =====
+Distro    Package  
+========= =====
+Ubuntu    `gkeyring <https://launchpad.net/gkeyring>`_
+Arch      `gkeyring <https://aur.archlinux.org/packages/gkeyring>`_
+========= =====
+
+
+
 Running
 =======
 
